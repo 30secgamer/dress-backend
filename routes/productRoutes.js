@@ -1,4 +1,3 @@
-// routes/products.js
 const express = require("express");
 const Product = require("../models/Product");
 
@@ -18,7 +17,7 @@ router.post("/", async (req, res) => {
       originalPrice: Number(originalPrice),
       discountedPrice: discountedPrice ? Number(discountedPrice) : undefined,
       sizes: sizes.split(","),
-      image, // URL from frontend
+      image, // directly store Cloudinary URL
     });
 
     await product.save();
@@ -51,7 +50,7 @@ router.put("/:id", async (req, res) => {
       originalPrice: Number(originalPrice),
       discountedPrice: discountedPrice ? Number(discountedPrice) : undefined,
       sizes: sizes.split(","),
-      image, // URL from frontend
+      image, // keep the URL
     };
 
     const product = await Product.findByIdAndUpdate(req.params.id, updated, { new: true });
