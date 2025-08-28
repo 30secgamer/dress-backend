@@ -1,8 +1,28 @@
-import express from "express";
-import Product from "../models/Product.js";
-import upload from "../config/multer.js"; // Cloudinary multer config
+const express = require("express");
+const Product = require("../models/Product");
+const multer = require("multer");
+const { v2: cloudinary } = require("cloudinary");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const router = express.Router();
+
+// Cloudinary config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Multer Cloudinary storage
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "dress-products",
+    allowed_formats: ["jpg", "jpeg", "png"],
+    transformation: [{ width: 800, height: 800, crop: "limit" }],
+  },
+});
+const upload = multer({ storage });
 
 // Create product
 router.post("/", upload.single("image"), async (req, res) => {
@@ -18,7 +38,7 @@ router.post("/", upload.single("image"), async (req, res) => {
       originalPrice: Number(originalPrice),
       discountedPrice: discountedPrice ? Number(discountedPrice) : undefined,
       sizes: sizes.split(","),
-      image: req.file ? req.file.path : undefined, // ✅ Cloudinary gives URL here
+      image: req.file ? req.file.path : undefined,
     });
 
     await product.save();
@@ -53,7 +73,7 @@ router.put("/:id", upload.single("image"), async (req, res) => {
       sizes: sizes.split(","),
     };
 
-    if (req.file) updated.image = req.file.path; // ✅ Cloudinary URL
+    if (req.file) updated.image = req.file.path;
 
     const product = await Product.findByIdAndUpdate(req.params.id, updated, { new: true });
     res.json(product);
@@ -63,4 +83,4 @@ router.put("/:id", upload.single("image"), async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;
